@@ -36,7 +36,7 @@ def main(car1, car2):
 
     # Step 3: Create affinity matrix
     M = create_affinity_matrix(G1, G2, L1, L2)
-    
+
     w = np.zeros(len(M))
 
     # 定义目标函数
