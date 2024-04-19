@@ -3,6 +3,7 @@ from mmdet3d.structures import LiDARInstance3DBoxes
 import torch
 from co_visible_object_matching import findCorrespondence
 from utils import extractCorners
+import os 
 
 # Input: expects 3xN matrix of points
 # Returns R,t
@@ -78,14 +79,43 @@ def findTransformationOneFrame(correspondence, infra_data, vehicle_data):
 
     return T
 
-
+def findTransformationAll(): 
+    # TODO: Run the pipeline in all 5 datasets
+    # datasets = ["Dataset_1", "Dataset_2", "Dataset_3"]
+    # sub_datasets = ["D1", "D2", "D3", "D4", "D5"]
+    datasets = ["Dataset_1"]
+    sub_datasets = ["D1"]
+    for dataset in datasets: 
+        for sub_dataset in sub_datasets:
+            infra_dir = f"../mmdetection3d/outputs/carla/{dataset}/{sub_dataset}/infra/preds/"
+            veh_dir = f"../mmdetection3d/outputs/carla/{dataset}/{sub_dataset}/vehicle/preds/"
+            num_frames_to_process = min(len(os.listdir(infra_dir)), len(os.listdir(veh_dir)))
+            print(f"Num frames to process = {num_frames_to_process}")
+            infra_files, veh_files = os.listdir(infra_dir), os.listdir(veh_dir)
+            for i in range(num_frames_to_process - 1): 
+                cur_infra_frame = os.path.join(infra_dir, infra_files[i])
+                next_infra_frame = os.path.join(infra_dir, infra_files[i+1])
+                cur_veh_frame = os.path.join(veh_dir, veh_files[i])
+                next_veh_frame = os.path.join(veh_dir, veh_files[i+1])
+                # print(cur_infra_frame)
+                # print(next_infra_frame)
+                # print(cur_veh_frame)
+                # print(next_veh_frame)
+                correspondence, infra_data, vehicle_data = findCorrespondence(
+                    cur_infra_frame, next_infra_frame, 
+                    cur_veh_frame, next_veh_frame
+                )
+                T = findTransformationOneFrame(correspondence, infra_data, vehicle_data)
+                print("Transformation matrix")
+                print(T) 
 
 if __name__=="__main__": 
-    correspondence, infra_data, vehicle_data = findCorrespondence(
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.137300000.json", 
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.215958000.json",
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.097195000.json", 
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.177662000.json"
-    )
-    T = findTransformationOneFrame(correspondence, infra_data, vehicle_data)
-    print(T) 
+    # correspondence, infra_data, vehicle_data = findCorrespondence(
+    #     "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.137300000.json", 
+    #     "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.215958000.json",
+    #     "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.097195000.json", 
+    #     "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.177662000.json"
+    # )
+    # T = findTransformationOneFrame(correspondence, infra_data, vehicle_data)
+    # print(T) 
+    findTransformationAll()
