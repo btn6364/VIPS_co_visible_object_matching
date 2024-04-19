@@ -21,10 +21,7 @@ def createMap(filename, filename2, tag):
 
     # TODO: Need to figure out why this matrix is not 4x4
     vehicle_transform = np.genfromtxt("../datasets/carla/Dataset_1/D1/V_W.txt", dtype=float)[:4,:]
-    # print(f"Infra Transform")
-    # print(infra_transform)
-    # print("\nVehicle Transform")
-    # print(vehicle_transform[:4,:])
+    
     with open(filename) as cur_frame, open(filename2) as next_frame: 
         # Load the JSON file
         data = json.load(cur_frame)
@@ -36,7 +33,7 @@ def createMap(filename, filename2, tag):
 
         num_objects = len(data["labels_3d"])   
         num_objects_next = len(next_data["labels_3d"])
-        print(f"Type = {tag} Cur frame num objects = {num_objects}, Num objects in next frame = {num_objects_next}")
+        # print(f"Type = {tag} Cur frame num objects = {num_objects}, Num objects in next frame = {num_objects_next}")
         map = {
             "category": [],
             "position": [],
@@ -75,32 +72,30 @@ def createMap(filename, filename2, tag):
                 if dist < min_dist: 
                     closest_next_position = next_position
                     min_dist = dist
-            # print(f"Close Next Position = {closest_next_position}, dist**2 = {min_dist}")
 
             # Compute the velocity vector of the vehicle
             heading_vector = closest_next_position - position
 
             # Compute the angle between the heading vector and the x-axis in Radians
-            # print(f"{type(heading_vector.numpy())}")
             angle = angleBetween(heading_vector.numpy(), np.array([1, 0, 0]))
-            # print(f"heading angle = {angle}")
             map["heading"].append([angle])
         return map, data
 
-def findCorrespondence():
+def findCorrespondence(infra_cur_frame, infra_next_frame, veh_cur_frame, veh_next_frame):
     infra_map, infra_data = createMap(
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.137300000.json", 
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.215958000.json",
-        "infra"
+        infra_cur_frame, infra_next_frame, "infra"
     )
     vehicle_map, vehicle_data = createMap(
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.097195000.json", 
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.177662000.json",
-        "vehicle"
+        veh_cur_frame, veh_next_frame, "vehicle"
     )
     correspondence = object_matching(infra_map, vehicle_map)
     return correspondence, infra_data, vehicle_data
 
 if __name__=="__main__": 
-    correspondence, _, _ = findCorrespondence()
+    correspondence, _, _ = findCorrespondence(
+        "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.137300000.json", 
+        "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.215958000.json",
+        "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.097195000.json", 
+        "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.177662000.json"
+    )
     print(correspondence)
