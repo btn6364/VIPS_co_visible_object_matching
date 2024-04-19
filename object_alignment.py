@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import numpy as np
 from mmdet3d.structures import LiDARInstance3DBoxes
 import torch
@@ -54,7 +52,7 @@ def rigid_transform_3D(A, B):
 
     return R, t
 
-def findTransformation(correspondence, infra_data, vehicle_data): 
+def findTransformationOneFrame(correspondence, infra_data, vehicle_data): 
     # TODO: Add weight to each detection object. 
     infra_corners = None
     vehicle_corners = None
@@ -83,6 +81,11 @@ def findTransformation(correspondence, infra_data, vehicle_data):
 
 
 if __name__=="__main__": 
-    correspondence, infra_data, vehicle_data = findCorrespondence()
-    T = findTransformation(correspondence, infra_data, vehicle_data)
+    correspondence, infra_data, vehicle_data = findCorrespondence(
+        "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.137300000.json", 
+        "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.215958000.json",
+        "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.097195000.json", 
+        "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.177662000.json"
+    )
+    T = findTransformationOneFrame(correspondence, infra_data, vehicle_data)
     print(T) 
