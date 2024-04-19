@@ -16,12 +16,7 @@ def findBbox(corner):
     height = findDist(corner[0], corner[1])
     return [length, width, height]
 
-def createMap(filename, filename2, tag): 
-    infra_transform = np.genfromtxt("../datasets/carla/Dataset_1/D1/I_W.txt", dtype=float)
-
-    # TODO: Need to figure out why this matrix is not 4x4
-    vehicle_transform = np.genfromtxt("../datasets/carla/Dataset_1/D1/V_W.txt", dtype=float)[:4,:]
-    
+def createMap(filename, filename2, tag, infra_transform, vehicle_transform): 
     with open(filename) as cur_frame, open(filename2) as next_frame: 
         # Load the JSON file
         data = json.load(cur_frame)
@@ -81,12 +76,16 @@ def createMap(filename, filename2, tag):
             map["heading"].append([angle])
         return map, data
 
-def findCorrespondence(infra_cur_frame, infra_next_frame, veh_cur_frame, veh_next_frame):
+def findCorrespondence(infra_cur_frame, infra_next_frame, veh_cur_frame, veh_next_frame, frame_idx):
+    # Read the transformation matrix to world coordinate
+    infra_transform = np.genfromtxt("../datasets/carla/Dataset_1/D1/I_W.txt", dtype=float)
+    vehicle_transform = np.genfromtxt("../datasets/carla/Dataset_1/D1/V_W.txt", dtype=float)[4*frame_idx:4*frame_idx+4,:]
+
     infra_map, infra_data = createMap(
-        infra_cur_frame, infra_next_frame, "infra"
+        infra_cur_frame, infra_next_frame, "infra", infra_transform, vehicle_transform
     )
     vehicle_map, vehicle_data = createMap(
-        veh_cur_frame, veh_next_frame, "vehicle"
+        veh_cur_frame, veh_next_frame, "vehicle", infra_transform, vehicle_transform
     )
     correspondence = object_matching(infra_map, vehicle_map)
     return correspondence, infra_data, vehicle_data
@@ -96,6 +95,7 @@ if __name__=="__main__":
         "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.137300000.json", 
         "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.215958000.json",
         "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.097195000.json", 
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.177662000.json"
+        "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.177662000.json", 
+        0
     )
     print(correspondence)

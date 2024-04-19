@@ -103,7 +103,8 @@ def findTransformationAll():
                 # print(next_veh_frame)
                 correspondence, infra_data, vehicle_data = findCorrespondence(
                     cur_infra_frame, next_infra_frame, 
-                    cur_veh_frame, next_veh_frame
+                    cur_veh_frame, next_veh_frame, 
+                    i
                 )
                 T = findTransformationOneFrame(correspondence, infra_data, vehicle_data)
                 print("Transformation matrix")
@@ -114,7 +115,8 @@ if __name__=="__main__":
     #     "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.137300000.json", 
     #     "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.215958000.json",
     #     "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.097195000.json", 
-    #     "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.177662000.json"
+    #     "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.177662000.json",
+    #     0
     # )
     # T = findTransformationOneFrame(correspondence, infra_data, vehicle_data)
     # print(T) 
