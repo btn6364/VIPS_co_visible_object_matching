@@ -85,6 +85,7 @@ def findTransformationAll():
     # sub_datasets = ["D1", "D2", "D3", "D4", "D5"]
     datasets = ["Dataset_1"]
     sub_datasets = ["D1"]
+    transformation_matrices = {}
     for dataset in datasets: 
         for sub_dataset in sub_datasets:
             infra_dir = f"../mmdetection3d/outputs/carla/{dataset}/{sub_dataset}/infra/preds/"
@@ -97,18 +98,15 @@ def findTransformationAll():
                 next_infra_frame = os.path.join(infra_dir, infra_files[i+1])
                 cur_veh_frame = os.path.join(veh_dir, veh_files[i])
                 next_veh_frame = os.path.join(veh_dir, veh_files[i+1])
-                # print(cur_infra_frame)
-                # print(next_infra_frame)
-                # print(cur_veh_frame)
-                # print(next_veh_frame)
+
                 correspondence, infra_data, vehicle_data = findCorrespondence(
                     cur_infra_frame, next_infra_frame, 
                     cur_veh_frame, next_veh_frame, 
                     i
                 )
                 T = findTransformationOneFrame(correspondence, infra_data, vehicle_data)
-                print("Transformation matrix")
-                print(T) 
+                transformation_matrices[(dataset, sub_dataset, i)] = T 
+    return transformation_matrices
 
 if __name__=="__main__": 
     # correspondence, infra_data, vehicle_data = findCorrespondence(
