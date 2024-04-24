@@ -26,15 +26,8 @@ def rre(R_t, R_e):
 # I_V = I_W * V_W^(-1)
 
 def calculateMeanRTEandRRE(): 
+    # Get all the predicted transformation matrices
     transformation_matrices = findTransformationAll() 
-    # TODO: Get the actual ground truth transformation here.
-    T_t = np.array([
-        [-0.904152274, 0.412234515, -0.112122796, 57.1650085],
-        [-0.406502962, -0.910887897, -0.0709831044, -11.8978882],
-        [-0.131392971, -0.0186012909, 0.991155863, 0.473078251],
-        [0.00000000, 0.00000000, 0.00000000, 1.00000000]
-    ])
-    R_t, t_t = T_t[:3,:3], T_t[:3,3]
 
     # TODO: Change this to Dataset_1 -> Dataset_3
     # TODO: Change this to D1 -> D5. 
@@ -47,12 +40,26 @@ def calculateMeanRTEandRRE():
             infra_dir = f"../mmdetection3d/outputs/carla/{dataset}/{sub_dataset}/infra/preds/"
             veh_dir = f"../mmdetection3d/outputs/carla/{dataset}/{sub_dataset}/vehicle/preds/"
             num_frames_to_process = min(len(os.listdir(infra_dir)), len(os.listdir(veh_dir)))
+            
+            # Get the I_W matrix
+            I_W = np.genfromtxt("../datasets/carla/Dataset_1/D1/I_W.txt", dtype=float)
             for i in range(num_frames_to_process - 1): 
+                # Get the V_W matrix
+                V_W = np.genfromtxt("../datasets/carla/Dataset_1/D1/V_W.txt", dtype=float)[4*i: 4*(i+1)]
+
+                # Compute the ground truth matrix
+                T_t = np.matmul(I_W, np.linalg.inv(V_W))
+                R_t, t_t = T_t[:3,:3], T_t[:3,3]
+
+                # Get the predicted matrix
                 T_e = transformation_matrices[(dataset, sub_dataset, i)]
                 R_e, t_e = T_e[:3,:3], T_e[:3,3]
+
+                # Calculate the RTE and RRE
                 total_rte += rte(t_t, t_e)
                 total_rre += rre(R_t, R_e)
             
+            # Calculate the mean RTE and mean RRE for each dataset
             mean_rte, mean_rre = round(total_rte / num_frames_to_process, 2), round(total_rre / num_frames_to_process, 2)
             rte_map[(dataset, sub_dataset)] = mean_rte
             rre_map[(dataset, sub_dataset)] = mean_rre
