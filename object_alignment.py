@@ -4,6 +4,7 @@ import torch
 from co_visible_object_matching import findCorrespondence
 from utils import extractCorners
 import os 
+import time
 
 # Input: expects 3xN matrix of points
 # Returns R,t
@@ -80,6 +81,10 @@ def findTransformationOneFrame(correspondence, infra_data, vehicle_data):
     return T
 
 def findTransformationAll(): 
+    # Start the timer
+    start_time = time.time()
+
+    # Find the transformation matrix for each frame
     transformation_matrices = {}
     infra_dir = f"../mmdetection3d/outputs/test/infra/preds/"
     veh_dir = f"../mmdetection3d/outputs/test/vehicle/preds/"
@@ -87,7 +92,7 @@ def findTransformationAll():
     print(f"Num frames to process = {num_frames_to_process}")
     infra_files = sorted(os.listdir(infra_dir), key=lambda x: int(x.split(".")[0])) 
     veh_files = sorted(os.listdir(veh_dir), key=lambda x: int(x.split(".")[0]))
-    # print(veh_files)
+
     # Skip the last frame because we need at least 2 frames to calculate the velocity
     for i in range(num_frames_to_process - 1): 
         # TODO: These frames raise an Exception related to Scipy that needs to be fixed. 
@@ -109,6 +114,11 @@ def findTransformationAll():
 
         # Store the transformation matrix for each frame ith. 
         transformation_matrices[i] = T 
+
+    end_time = time.time() 
+    elapsed_time = round(end_time - start_time, 2) 
+    print(f"Total elapsed time for all transformation = {elapsed_time}s")
+
     return transformation_matrices
 
 if __name__=="__main__": 
