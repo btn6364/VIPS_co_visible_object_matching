@@ -80,40 +80,43 @@ def findTransformationOneFrame(correspondence, infra_data, vehicle_data):
     return T
 
 def findTransformationAll(): 
-    # TODO: Run the pipeline in all 5 datasets
-    # datasets = ["Dataset_1", "Dataset_2", "Dataset_3"]
-    # sub_datasets = ["D1", "D2", "D3", "D4", "D5"]
-    datasets = ["Dataset_1"]
-    sub_datasets = ["D1"]
     transformation_matrices = {}
-    for dataset in datasets: 
-        for sub_dataset in sub_datasets:
-            infra_dir = f"../mmdetection3d/outputs/carla/{dataset}/{sub_dataset}/infra/preds/"
-            veh_dir = f"../mmdetection3d/outputs/carla/{dataset}/{sub_dataset}/vehicle/preds/"
-            num_frames_to_process = min(len(os.listdir(infra_dir)), len(os.listdir(veh_dir)))
-            print(f"Num frames to process = {num_frames_to_process}")
-            infra_files, veh_files = os.listdir(infra_dir), os.listdir(veh_dir)
-            for i in range(num_frames_to_process - 1): 
-                cur_infra_frame = os.path.join(infra_dir, infra_files[i])
-                next_infra_frame = os.path.join(infra_dir, infra_files[i+1])
-                cur_veh_frame = os.path.join(veh_dir, veh_files[i])
-                next_veh_frame = os.path.join(veh_dir, veh_files[i+1])
+    infra_dir = f"../mmdetection3d/outputs/test/infra/preds/"
+    veh_dir = f"../mmdetection3d/outputs/test/vehicle/preds/"
+    num_frames_to_process = min(len(os.listdir(infra_dir)), len(os.listdir(veh_dir)))
+    print(f"Num frames to process = {num_frames_to_process}")
+    infra_files = sorted(os.listdir(infra_dir), key=lambda x: int(x.split(".")[0])) 
+    veh_files = sorted(os.listdir(veh_dir), key=lambda x: int(x.split(".")[0]))
+    # print(veh_files)
+    # Skip the last frame because we need at least 2 frames to calculate the velocity
+    for i in range(num_frames_to_process - 1): 
+        # TODO: These frames raise an Exception related to Scipy that needs to be fixed. 
+        if i in [70, 90, 91, 93, 101, 102, 160]:
+            continue
 
-                correspondence, infra_data, vehicle_data = findCorrespondence(
-                    cur_infra_frame, next_infra_frame, 
-                    cur_veh_frame, next_veh_frame, 
-                    i
-                )
-                T = findTransformationOneFrame(correspondence, infra_data, vehicle_data)
-                transformation_matrices[(dataset, sub_dataset, i)] = T 
+        print(f"Processing frame {i}th...")
+        cur_infra_frame = os.path.join(infra_dir, infra_files[i])
+        next_infra_frame = os.path.join(infra_dir, infra_files[i+1])
+        cur_veh_frame = os.path.join(veh_dir, veh_files[i])
+        next_veh_frame = os.path.join(veh_dir, veh_files[i+1])
+
+        correspondence, infra_data, vehicle_data = findCorrespondence(
+            cur_infra_frame, next_infra_frame, 
+            cur_veh_frame, next_veh_frame, 
+            i
+        )
+        T = findTransformationOneFrame(correspondence, infra_data, vehicle_data)
+
+        # Store the transformation matrix for each frame ith. 
+        transformation_matrices[i] = T 
     return transformation_matrices
 
 if __name__=="__main__": 
     # correspondence, infra_data, vehicle_data = findCorrespondence(
-    #     "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.137300000.json", 
-    #     "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.215958000.json",
-    #     "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.097195000.json", 
-    #     "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.177662000.json",
+    #     "../mmdetection3d/outputs/test/infra/preds/0.json", 
+    #     "../mmdetection3d/outputs/test/infra/preds/1.json",
+    #     "../mmdetection3d/outputs/test/vehicle/preds/0.json", 
+    #     "../mmdetection3d/outputs/test/vehicle/preds/1.json", 
     #     0
     # )
     # T = findTransformationOneFrame(correspondence, infra_data, vehicle_data)

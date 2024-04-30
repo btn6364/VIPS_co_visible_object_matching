@@ -38,6 +38,7 @@ def main(car1, car2):
     M = create_affinity_matrix(G1, G2, L1, L2)
 
     w = np.zeros(len(M))
+    # print(M) 
 
     # 定义目标函数
     @nb.njit()

@@ -69,17 +69,21 @@ def createMap(filename, filename2, tag, infra_transform, vehicle_transform):
                     min_dist = dist
 
             # Compute the velocity vector of the vehicle
-            heading_vector = closest_next_position - position
-
-            # Compute the angle between the heading vector and the x-axis in Radians
-            angle = angleBetween(heading_vector.numpy(), np.array([1, 0, 0]))
+            if closest_next_position is not None:
+                heading_vector = closest_next_position - position
+                
+                # Compute the angle between the heading vector and the x-axis in Radians
+                angle = angleBetween(heading_vector.numpy(), np.array([1, 0, 0]))   
+            else: 
+                angle = 0.0
+            
             map["heading"].append([angle])
         return map, data
 
 def findCorrespondence(infra_cur_frame, infra_next_frame, veh_cur_frame, veh_next_frame, frame_idx):
-    # Read the transformation matrix to world coordinate
-    infra_transform = np.genfromtxt("../datasets/carla/Dataset_1/D1/I_W.txt", dtype=float)
-    vehicle_transform = np.genfromtxt("../datasets/carla/Dataset_1/D1/V_W.txt", dtype=float)[4*frame_idx:4*frame_idx+4,:]
+    # Read the transformation matrices to world coordinate
+    infra_transform = np.genfromtxt("../Segmentation_Dataset/I_W.txt", dtype=float)
+    vehicle_transform = np.genfromtxt("../Segmentation_Dataset/V_W.txt", dtype=float)[4*frame_idx:4*frame_idx+4,:]
 
     infra_map, infra_data = createMap(
         infra_cur_frame, infra_next_frame, "infra", infra_transform, vehicle_transform
@@ -92,10 +96,10 @@ def findCorrespondence(infra_cur_frame, infra_next_frame, veh_cur_frame, veh_nex
 
 if __name__=="__main__": 
     correspondence, _, _ = findCorrespondence(
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.137300000.json", 
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/infra/preds/1689811023.215958000.json",
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.097195000.json", 
-        "../mmdetection3d/outputs/carla/Dataset_1/D1/vehicle/preds/1689811023.177662000.json", 
-        0
+        "../mmdetection3d/outputs/test/infra/preds/32.json", 
+        "../mmdetection3d/outputs/test/infra/preds/33.json",
+        "../mmdetection3d/outputs/test/vehicle/preds/32.json", 
+        "../mmdetection3d/outputs/test/vehicle/preds/33.json", 
+        32
     )
     print(correspondence)

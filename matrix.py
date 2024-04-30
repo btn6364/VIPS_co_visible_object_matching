@@ -45,7 +45,14 @@ def calculate_edge_similarity(e1n1=np.array([]), e1n2=np.array([]), e2n1=np.arra
     miu_3 = 0.5
     miu_4 = 0.5
     # according to original paper, miu_3 and miu_4 also are weights to balance those affinities and as they told that should all be 0.5
-    return g_1_i_ip_j_jp * (miu_3 * g_2_i_ip_j_jp + miu_4 * g_3_i_ip_j_jp)
+    
+    # If the edge_to_edge affinity score is NaN, assume there is no match, assign the value to 0.0
+    if np.isnan(g_2_i_ip_j_jp): 
+        g_2_i_ip_j_jp = 0.0
+    if np.isnan(g_3_i_ip_j_jp): 
+        g_3_i_ip_j_jp = 0.0
+    edge_to_edge_affinity_score = g_1_i_ip_j_jp * (miu_3 * g_2_i_ip_j_jp + miu_4 * g_3_i_ip_j_jp)
+    return edge_to_edge_affinity_score
 
 
 @nb.njit(parallel=True)
