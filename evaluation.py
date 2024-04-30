@@ -9,20 +9,14 @@ def rte(t1, t2):
     return dist
 
 def rre(R_t, R_e): 
-    # Calculate the rotation matrix
+    # Calculate the inversed of the ground truth rotation matrix
     R_t_inversed = np.linalg.inv(R_t)
-    # R = np.matmul(R_t_inversed, R_e)
-    
-    # Calculate the three Euler angles (Z-Y-X order)
-    # yaw = atan2(R[1,0], R[0,0])
-    # pitch = -asin(R[2,0])
-    # roll = atan2(R[2,1], R[2,2])
-    
-    # # Calculate the L1 distance
-    # dist = np.sum(np.abs(np.array([yaw, pitch, roll]))).round(2)
 
+    # Calculate the three Euler angles
     intermidate_RRE = R.from_matrix(np.dot(R_t_inversed, R_e))
     a = intermidate_RRE.as_euler('zyx', degrees=True)
+
+    # Calculate the RRE
     rre = round(sum(abs(number) for number in a), 2)
 
     return rre
@@ -40,14 +34,9 @@ def calculateRTEandRRE():
     veh_dir = f"../mmdetection3d/outputs/test/vehicle/preds/"
     num_frames_to_process = min(len(os.listdir(infra_dir)), len(os.listdir(veh_dir)))
     
-    # Get the I_W matrix
-    I_W = np.genfromtxt("../Segmentation_Dataset/I_W.txt", dtype=float)
     for i in range(num_frames_to_process): 
-        # Get the V_W matrix
-        V_W = np.genfromtxt("../Segmentation_Dataset/V_W.txt", dtype=float)[4*i: 4*(i+1)]
-
-        # Compute the ground truth matrix I_V = I_W * V_W^(-1)
-        T_t = np.matmul(I_W, np.linalg.inv(V_W))
+        # Compute the ground truth matrix
+        T_t = np.genfromtxt("../Segmentation_Dataset/Ground_Truth_Inf_Vehicle.txt", dtype=float)[4*i: 4*(i+1)]
         R_t, t_t = T_t[:3,:3], T_t[:3,3]
 
         # Get the predicted matrix.
@@ -68,24 +57,6 @@ def calculateRTEandRRE():
     return mean_rte, mean_rre, min_rte, max_rte, min_rre, max_rre
 
 if __name__=="__main__": 
-    # t1 = np.array([1,2,3])
-    # t2 = np.array([1,1,1])
-    # dist = rte(t1, t2)
-    # print(f"Distance = {dist}")
-
-    # R_t = np.array([
-    #     [0.94, 0, 0.34], 
-    #     [0, 1, 0], 
-    #     [-0.34, 0, 0.94]
-    # ])
-    # R_e = np.array([
-    #     [-0.0004, -0.99, 0.000009], 
-    #     [0.99, -0.0004, 0.0002],
-    #     [-0.0002, 0.000001, 1]
-    # ])
-    # dist = rre(R_t, R_e)
-    # print(f"angle dist = {dist}")
-
     mean_rte, mean_rre, min_rte, max_rte, min_rre, max_rre = calculateRTEandRRE()
     print(f"RTE mean = {mean_rte}")
     print(f"RTE min = {min_rte}")
